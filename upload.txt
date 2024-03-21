@@ -1,0 +1,7 @@
+git config --global user.name [用户名]	// 设置用户签名
+git config --global user.email [邮箱]	// 设置用户密码
+
+git status // 查看更改的且未上传的文件
+git add . // 把你更改的未上传的全部放到暂存区
+git commit -m "comments" // 推送到本地仓库
+git push -u origin master:master // 把本地仓库的内容传送到远程仓库（github）
