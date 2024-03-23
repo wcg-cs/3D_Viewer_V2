@@ -82,8 +82,8 @@ class Ui_Form(object):
         self.verticalLayout_2.setStretch(1, 20)
         self.verticalLayout_2.setStretch(2, 1)
         self.verticalLayout_left.addWidget(self.WidgetYZ)
-        self.verticalLayout_left.setStretch(0, 1)
-        self.verticalLayout_left.setStretch(1, 1)
+        self.verticalLayout_left.setStretch(0, 2)
+        self.verticalLayout_left.setStretch(1, 2)
         self.horizontalLayout_2.addWidget(self.verticalWidget_left)
         self.verticalWidget_right = QtWidgets.QWidget(Form)
         self.verticalWidget_right.setObjectName("verticalWidget_right")
@@ -126,8 +126,8 @@ class Ui_Form(object):
         self.verticalLayout_5.setStretch(1, 10)
         self.verticalLayout_5.setStretch(2, 1)
         self.verticalLayout_right.addWidget(self.WidgetVolume)
-        self.verticalLayout_right.setStretch(0, 1)
-        self.verticalLayout_right.setStretch(1, 1)
+        self.verticalLayout_right.setStretch(0, 2)
+        self.verticalLayout_right.setStretch(1, 2)
         self.horizontalLayout_2.addWidget(self.verticalWidget_right)
         self.horizontalLayout_2.setStretch(0, 1)
         self.horizontalLayout_2.setStretch(1, 1)
@@ -154,6 +154,12 @@ class Ui_Form(object):
         self.horizontalLayout.addLayout(self.verticalLayout_4)
         self.horizontalLayout.setStretch(0, 15)
         self.horizontalLayout.setStretch(1, 1)
+
+        self.XYPlaneWidget.setMinimumSize(QtCore.QSize(350, 350))  # 或其他适当的值
+        self.YZPlaneWidget.setMinimumSize(QtCore.QSize(350, 350))  # 或其他适当的值
+        self.XZPlaneWidget.setMinimumSize(QtCore.QSize(350, 350))  # 或其他适当的值
+        self.VolumeWidget.setMinimumSize(QtCore.QSize(350, 350))  # 或其他适当的值
+
 
         self.retranslateUi(Form)
         QtCore.QMetaObject.connectSlotsByName(Form)

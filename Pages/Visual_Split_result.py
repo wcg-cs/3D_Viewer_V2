@@ -12,7 +12,7 @@ class MyMainWindow(QMainWindow):
     def __init__(self):
         super(MyMainWindow, self).__init__()
         # 加载UI文件
-        loadUi("ui/visual_split_result.ui", self)
+        loadUi("ui/visual_split_result_1.0.ui", self)
         # 设置主窗口的布局为垂直布局
         self.centralwidget.setLayout(QVBoxLayout())
 

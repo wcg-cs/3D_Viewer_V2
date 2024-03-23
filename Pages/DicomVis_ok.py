@@ -11,7 +11,7 @@ __author__ = 'Q610098308'
 
 import vtk
 from PyQt5 import QtWidgets, QtCore
-from DicomVis_ui import Ui_Form
+from DicomVis_ui import Ui_Form   #导入ui设计文件
 from PyQt5 import QtWidgets
 from PyQt5.QtWidgets import *
 
@@ -38,6 +38,8 @@ DefaultColor =[[200,0,0,255],
 [0,255,255,0] ,
 [0,0,0,0] ]
 
+
+# 尝试导入自定义模块，若导入失败，则创建空的类
 try:
     from lib import StudyData as StudyData
     from lib import VisuAnalysisWidget
@@ -45,18 +47,19 @@ except(ImportError):
     class VisuAnalysisWidget(QWidget):
         pass
 
+# vtk回调函数类
 class vtkMyCallback():
     """
     交互的Callback
     """
     def __init__(self):
         #super(self).__init__()
-        self.IPW = []
-        self.RCW = []
+        self.IPW = []       #图像平面小部件
+        self.RCW = []       #ResliceCursorWidget
 
     #def Execute(self, caller, event,callData):
     def __call__(self, caller, ev):
-
+        #更新图像平面小部件的位置 
         rep = caller.GetRepresentation()
         rc = rep.GetResliceCursorActor().GetCursorAlgorithm().GetResliceCursor()
 
@@ -78,18 +81,18 @@ class vtkMyCallback():
 
         self.IPW[0].GetInteractor().GetRenderWindow().Render()
 
-
+    #设置图像平面小部件和ResliceCursorWidget
     def setPlaneWidget(self, param):
         self.IPW.append(param)
 
     def setResliceCursor(self, param):
         self.RCW.append(param)
 
-
+# DicomVis类继承自VisuAnalysisWidget类
 class DicomVis(VisuAnalysisWidget):
 
     def __init__(self, parent = None):
-
+        # 变量初始化
         self.dataExtent = []
         self.dataDimensions = []
         self.planeWidget = []
@@ -103,7 +106,7 @@ class DicomVis(VisuAnalysisWidget):
         self.ui = Ui_Form()
         self.ui.setupUi(self)
 
-        # define viewers
+        # define viewers定义视图
         self.ResliceImageView =[]
         [self.viewerXY, self.viewerYZ, self.viewerXZ] = [vtk.vtkResliceImageViewer() for x in range(3)]
 
@@ -114,7 +117,7 @@ class DicomVis(VisuAnalysisWidget):
         self.ResliceImageView.append(self.viewerYZ)
         self.ResliceImageView.append(self.viewerXZ)
 
-        # set render windows for viewers
+        # set render windows for viewers设置渲染窗口
         self.RenderWindow = []
         self.RenderWindow.append(self.ui.XYPlaneWidget.GetRenderWindow())
         self.RenderWindow.append(self.ui.YZPlaneWidget.GetRenderWindow())
@@ -124,27 +127,28 @@ class DicomVis(VisuAnalysisWidget):
         self.ui.YZPlaneWidget.GetRenderWindow().SetMultiSamples(False)
         self.ui.XZPlaneWidget.GetRenderWindow().SetMultiSamples(False)
 
+        # 将渲染器设置给视图
         self.viewerXY.SetRenderWindow(self.ui.XYPlaneWidget.GetRenderWindow())
         self.viewerYZ.SetRenderWindow(self.ui.YZPlaneWidget.GetRenderWindow())
         self.viewerXZ.SetRenderWindow(self.ui.XZPlaneWidget.GetRenderWindow())
 
-        # attach interactors to viewers
+        # attach interactors to viewers设置交互器
         self.viewerXY.SetupInteractor(self.ui.XYPlaneWidget)
         self.viewerYZ.SetupInteractor(self.ui.YZPlaneWidget)
         self.viewerXZ.SetupInteractor(self.ui.XZPlaneWidget)
 
-        # set slicing orientation for viewers
+        # set slicing orientation for viewers设置切片定位
         self.viewerXY.SetSliceOrientationToXZ()
         self.viewerYZ.SetSliceOrientationToYZ()
         self.viewerXZ.SetSliceOrientationToXY()
 
-        # setup volume rendering
+        # setup volume rendering设置体素渲染
         self.volRender = vtk.vtkRenderer()
         self.volRenWin = self.ui.VolumeWidget.GetRenderWindow()
         self.volRenWin.SetMultiSamples(0)
         self.volRenWin.AddRenderer(self.volRender)
 
-        # Set up the interaction
+        # Set up the interaction设置交互
         self.interactorXY = self.viewerXY.GetRenderWindow().GetInteractor()
         self.interactorXZ = self.viewerXZ.GetRenderWindow().GetInteractor()
         self.interactorYZ = self.viewerYZ.GetRenderWindow().GetInteractor()
@@ -162,16 +166,19 @@ class DicomVis(VisuAnalysisWidget):
         self.volRenWin = self.ui.VolumeWidget.GetRenderWindow()
         self.volRenWin.AddRenderer(self.volRender)
 
+    # 更新数据
     def updateData(self, studydata):
         self.load_study_from_path(studydata.getPath())
+    # 显示数据
     def show_Data(self):
+        # 计算数据尺寸和范围
         self.dataExtent = self.ImageData.GetExtent()
         dataDimensionX = self.dataExtent[1]-self.dataExtent[0]
         dataDimensionY = self.dataExtent[3]-self.dataExtent[2]
         dataDimensionZ = self.dataExtent[5]-self.dataExtent[4]
         self.dataDimensions = [dataDimensionX, dataDimensionY, dataDimensionZ]
 
-        # Calculate index of middle slice
+        # Calculate index of middle slice计算中间切片的索引
         midslice1 = int((self.dataExtent[1]-self.dataExtent[0])/2 + self.dataExtent[0])
         midslice2 = int((self.dataExtent[3]-self.dataExtent[2])/2 + self.dataExtent[2])
         midslice3 = int((self.dataExtent[5]-self.dataExtent[4])/2 + self.dataExtent[4])
@@ -179,20 +186,23 @@ class DicomVis(VisuAnalysisWidget):
         # Calculate enter
         center = [midslice1, midslice2, midslice3]
 
-        # Get data range
+        # Get data range获取数据范围
         self.dataRange = self.ImageData.GetScalarRange()
         print(self.dataRange)
 
         ##################################
+        # 获取交互器
         interactor = self.volRenWin.GetInteractor()  # vtk.vtkRenderWindowInteractor()
 
+        # 清空平面小部件列表
         self.planeWidget.clear()
         #window.SetInteractor(interactor)
+        # 创建CellPicker和Property
         picker = vtk.vtkCellPicker()
         picker.SetTolerance(0.005)
         ipwProp = vtk.vtkProperty()
 
-        # create plane source here planeWidget
+        # create plane source here planeWidget创建平面小部件
         for i in range(3):
             self.planeWidget.append(vtk.vtkImagePlaneWidget())
             self.planeWidget[i].SetInteractor(interactor)
@@ -215,9 +225,11 @@ class DicomVis(VisuAnalysisWidget):
             self.planeWidget[i].On()
             self.planeWidget[i].InteractionOn()
 
+        # 设置平面小部件的LookupTable
         self.planeWidget[1].SetLookupTable(self.planeWidget[0].GetLookupTable())
         self.planeWidget[2].SetLookupTable(self.planeWidget[0].GetLookupTable())
 
+        # 创建ResliceCursor和Callback对象
         resliceCursorWidget = []
         resliceCursorRep = []
 
@@ -228,7 +240,7 @@ class DicomVis(VisuAnalysisWidget):
 
         callback = vtkMyCallback()
 
-        # 我们在这里设置observer.
+        # 我们在这里设置observer.设置观察者
         TestMyCallbackList = []
         for i in range(3):
 
@@ -258,19 +270,22 @@ class DicomVis(VisuAnalysisWidget):
             reslice.SetBackgroundColor(minValue, minValue, minValue, minValue)
             self.ResliceImageView[i].GetResliceCursorWidget().AddObserver(vtk.vtkCommand.InteractionEvent, callback)
 
+            # 禁用平面小部件并设置相机位置
             for i in range(3):
                 self.planeWidget[i].SetEnabled(False)
             camPos = [0, 0, 0]
             camPos[i] = 1
 
-
+        # 设置平面小部件的窗宽窗位以及颜色映射
         for i in range(3):
             self.planeWidget[i].SetWindowLevel(maxValue - minValue, (minValue + maxValue) / 2.0)
             self.planeWidget[i].GetColorMap().SetLookupTable(resliceCursorRep[0].GetLookupTable())
 
+        # 将渲染器添加到渲染器列表中
         for i in range(3):
             self.RenderList.append(self.ResliceImageView[i].GetRenderer())
 
+        # 更新平面小部件位置并渲染
         for i in range(3):
             #self.RenderList[i].ResetCamera()
             #self.RenderWindow[i].Render()
@@ -281,8 +296,10 @@ class DicomVis(VisuAnalysisWidget):
         self.volRender.ResetCamera()
         self.volRenWin.Render()
 
+        # 将MPR复选框设置为选中状态
         self.ui.MPRCheckBox.setChecked(True)
 
+    # 从文件路径获取NIFTI图像
     def GetImageDataFromPath(self,path):
         reader = vtk.vtkNIFTIImageReader()
         reader.SetFileName(path)
@@ -309,14 +326,14 @@ class DicomVis(VisuAnalysisWidget):
             contoursA.SetValue(0, 0.5)
             contoursA.Update()
 
-            # create the mapper
+            # create the mapper创建Mapper
 
             mapperA = vtk.vtkPolyDataMapper()
             mapperA.ScalarVisibilityOff()
             mapperA.SetInputData(contoursA.GetOutput())
             ##############################################
 
-            # create the actor
+            # create the actor创建Actor
             actorA = vtk.vtkActor()
             propA = vtk.vtkProperty()
             propA.SetColor(DefaultColor[index][0] / 255.0, DefaultColor[index][1] / 255.0,
@@ -331,7 +348,7 @@ class DicomVis(VisuAnalysisWidget):
         self.volRender.ResetCamera()
         self.volRenWin.Render()
 
-
+    # 从文件夹路径加载DICOM数据
     def load_dicom_from_path(self, studyPath):
         self.reader = vtk.vtkDICOMImageReader()
         self.reader.SetDirectoryName(studyPath)
@@ -340,7 +357,7 @@ class DicomVis(VisuAnalysisWidget):
 
         self.ImageData.DeepCopy( self.reader.GetOutput())
         self.show_Data()
-
+    # 从文件路径加载NII数据
     def load_Nii_from_path(self, studyPath):
         reader = vtk.vtkNIFTIImageReader()
         reader.SetFileName(studyPath)
@@ -350,6 +367,7 @@ class DicomVis(VisuAnalysisWidget):
         self.ImageData.DeepCopy(reader.GetOutput())
         self.show_Data()
        # self.on_MPRCheckBox_stateChanged(2)
+    # MPR复选框状态更改的槽函数
     @QtCore.pyqtSlot(int)
     def on_MPRCheckBox_stateChanged(self, state):
         mode = 0
@@ -359,13 +377,13 @@ class DicomVis(VisuAnalysisWidget):
             pair[0].SetResliceMode(mode)
             pair[0].GetRenderer().ResetCamera()
             pair[0].Render()
-
+    # 关闭窗口
     def close(self):
         self.ui.XYPlaneWidget.Finalize()
         self.ui.YZPlaneWidget.Finalize()
         self.ui.XZPlaneWidget.Finalize()
         self.ui.VolumeWidget.Finalize()
-
+    # 关闭事件
     def closeEvent(self, event):
         self.close()
 
