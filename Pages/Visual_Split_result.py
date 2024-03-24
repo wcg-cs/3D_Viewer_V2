@@ -8,13 +8,14 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 
 from DicomVis_ok import DicomVis
 
-class MyMainWindow(QMainWindow):
+class Visual_Wndow(QMainWindow):
     def __init__(self):
-        super(MyMainWindow, self).__init__()
+        super(Visual_Wndow, self).__init__()
         # 加载UI文件
         loadUi("ui/visual_split_result_1.0.ui", self)
         # 设置主窗口的布局为垂直布局
         self.centralwidget.setLayout(QVBoxLayout())
+
 
 
         self.dicomVisWidget = DicomVis()
@@ -62,9 +63,11 @@ class MyMainWindow(QMainWindow):
             return
 
         self.dicomVisWidget.GetImageDataFromPath(file)
+
     def setWidgetsSizePolicy(self):
         for widget in self.findChildren(QWidget):
             widget.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+            
     def close(self):
         self.dicomVisWidget.close()
 
@@ -72,6 +75,6 @@ class MyMainWindow(QMainWindow):
         self.close()
 if __name__ == "__main__":
     app = QApplication(sys.argv)
-    mainWindow = MyMainWindow()
+    mainWindow = Visual_Wndow()
     mainWindow.show()
     sys.exit(app.exec_())

@@ -5,6 +5,7 @@ from PyQt5.QtWidgets import  QMainWindow, QPushButton, QTableWidget, QTableWidge
 import os
 import shutil
 from PyQt5.QtCore import QObject, pyqtSignal
+from PyQt5.QtWidgets import QApplication, QMainWindow, QPushButton, QFileDialog
 
 class Patient_Manage(QMainWindow):
     navigateSignal = pyqtSignal()#splitWorkflow跳转信号
@@ -64,15 +65,19 @@ class Patient_Manage(QMainWindow):
 
 
         # 添加按钮到第三列
-        button1 = QPushButton("button1")
-        button2 = QPushButton("button2")
-        button3 = QPushButton("button3")
+        upload_file = QPushButton("upload_file")
+        delete_file = QPushButton("delete_file")
+        detail_info = QPushButton("detail_info")
+
+        # load_file导入文件
+        upload_file.clicked.connect(self.import_file)
+        delete_file.clicked.connect(self.delete_file)
 
         # 创建水平布局并添加按钮
         buttonLayout = QHBoxLayout()
-        buttonLayout.addWidget(button1)
-        buttonLayout.addWidget(button2)
-        buttonLayout.addWidget(button3)
+        buttonLayout.addWidget(upload_file)
+        buttonLayout.addWidget(delete_file)
+        buttonLayout.addWidget(detail_info)
 
         # 创建一个 QWidget 来容纳水平布局
         buttonWidget = QWidget()
@@ -120,8 +125,21 @@ class Patient_Manage(QMainWindow):
         if not os.path.exists(new_folder_path):  # 检查文件夹是否已存在
             os.makedirs(new_folder_path)
             QMessageBox.information(self, "Info", f"Folder '{patientName}' created in 'patients' directory.")
+            
+            # 创建 label 文件夹
+            label_folder_path = os.path.join(new_folder_path, 'label')
+            os.makedirs(label_folder_path)
+            QMessageBox.information(self, "Info", f"Subfolder 'label' created in '{patientName}' folder.")
         else:
             QMessageBox.warning(self, "Warning", f"Folder '{patientName}' already exists in 'patients' directory.")
+        
+        self.showPatientFiles()#刷新界面
+
+        # if not os.path.exists(new_folder_path):  # 检查文件夹是否已存在
+        #     os.makedirs(new_folder_path)
+        #     QMessageBox.information(self, "Info", f"Folder '{patientName}' created in 'patients' directory.")
+        # else:
+        #     QMessageBox.warning(self, "Warning", f"Folder '{patientName}' already exists in 'patients' directory.")
 
     # listwidget展示patients内的文件
     def showPatientFiles(self):
@@ -152,8 +170,86 @@ class Patient_Manage(QMainWindow):
 
     # splitWorkflowButton跳转
     def navigateToPatient_Image(self):
-            # 当用户点击按钮时发出信号
-            self.navigateSignal.emit()
+        # 当用户点击按钮时发出信号
+        self.navigateSignal.emit()
+
+    # load_file导入文件
+    def import_file(self):
+        # 打开文件对话框，获取用户选择的文件路径
+        file_dialog = QFileDialog(self)
+        file_path, _ = file_dialog.getOpenFileName(self, "选择文件", "", "All Files (*)")
+        if file_path:
+            # 获取选中行的病人姓名
+            currentRow = self.tableWidget.currentRow()
+            if currentRow >= 0:
+                patientNameItem = self.tableWidget.item(currentRow, 0)
+                if patientNameItem is not None:
+                    patientName = patientNameItem.text()
+
+                    # 构建病人文件夹路径
+                    patients_directory = 'patients'
+                    folder_path = os.path.join(patients_directory, patientName)
+
+                    # 检查文件夹是否存在
+                    if os.path.exists(folder_path) and os.path.isdir(folder_path):
+                        # 构建目标文件路径
+                        file_name = os.path.basename(file_path)
+                        destination_path = os.path.join(folder_path, file_name)
+
+                        try:
+                            # 将文件复制到目标文件夹
+                            shutil.copyfile(file_path, destination_path)
+                            print("File imported successfully.")
+                            self.showPatientFiles()#刷新界面
+                        except Exception as e:
+                            QMessageBox.warning(self, "Error", f"Failed to import file: {str(e)}")
+                    else:
+                        QMessageBox.warning(self, "Warning", f"Folder '{patientName}' does not exist.")
+                else:
+                    QMessageBox.warning(self, "Warning", "Please select a patient.")
+            else:
+                QMessageBox.warning(self, "Warning", "Please select a patient.")
+
+    # delete_file 删除文件
+    def delete_file(self):
+    # 获取选中行的病人姓名
+        currentRow = self.tableWidget.currentRow()
+        if currentRow >= 0:
+            patientNameItem = self.tableWidget.item(currentRow, 0)
+            if patientNameItem is not None:
+                patientName = patientNameItem.text()
+
+                # 获取病人文件夹路径
+                patients_directory = 'patients'
+                folder_path = os.path.join(patients_directory, patientName)
+
+                # 检查文件夹是否存在
+                if os.path.exists(folder_path) and os.path.isdir(folder_path):
+                    # 获取列表视图选中的文件名
+                    selected_item = self.listWidget.currentItem()
+                    if selected_item is not None:
+                        file_name = selected_item.text()
+
+                        # 构建文件的完整路径
+                        file_path = os.path.join(folder_path, file_name)
+
+                        # 检查文件是否存在
+                        if os.path.exists(file_path) and os.path.isfile(file_path):
+                            try:
+                                # 删除文件
+                                os.remove(file_path)
+                                print(f"File '{file_name}' deleted successfully.")
+                                self.showPatientFiles()  # 刷新界面
+                            except Exception as e:
+                                QMessageBox.warning(self, "Error", f"Failed to delete file: {str(e)}")
+                        else:
+                            QMessageBox.warning(self, "Warning", f"File '{file_name}' does not exist.")
+                    else:
+                        QMessageBox.warning(self, "Warning", f"Folder '{patientName}' does not exist.")
+                else:
+                    QMessageBox.warning(self, "Warning", "Please select a patient.")
+            else:
+                QMessageBox.warning(self, "Warning", "Please select a patient.")
 
 # if __name__ == "__main__":
 #     app = QApplication(sys.argv)

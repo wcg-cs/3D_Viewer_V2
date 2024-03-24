@@ -94,6 +94,7 @@ class DicomVis(VisuAnalysisWidget):
     def __init__(self, parent = None):
         # 变量初始化
         self.dataExtent = []
+        self.actorList = []
         self.dataDimensions = []
         self.planeWidget = []
         self.dataRange = ()
@@ -299,11 +300,17 @@ class DicomVis(VisuAnalysisWidget):
         # 将MPR复选框设置为选中状态
         self.ui.MPRCheckBox.setChecked(True)
 
-    # 从文件路径获取NIFTI图像
+    # 从文件路径获取NIFTI图像3d
     def GetImageDataFromPath(self,path):
+        print("Path:",path)
         reader = vtk.vtkNIFTIImageReader()
         reader.SetFileName(path)
         reader.Update()
+        # self.volRender.RemoveActor()
+
+        count =len(self.actorList)
+        for aindex in range(count):
+            self.volRender.RemoveActor(self.actorList[aindex])
 
         self.LabelImageData.DeepCopy(reader.GetOutput())
         (minValue, maxValue) = self.LabelImageData.GetScalarRange()
@@ -341,6 +348,7 @@ class DicomVis(VisuAnalysisWidget):
             propA.SetOpacity(1)
             actorA.SetProperty(propA)
             actorA.SetMapper(mapperA)
+            self.actorList.append(actorA)
             self.volRender.AddActor(actorA)
 
             index=index+1

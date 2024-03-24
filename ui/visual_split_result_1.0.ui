@@ -32,7 +32,7 @@
         <item>
          <layout class="QGridLayout" name="gridLayout">
           <item row="0" column="0">
-           <widget class="QPushButton" name="pushButton">
+           <widget class="QPushButton" name="back">
             <property name="text">
              <string>Back</string>
             </property>

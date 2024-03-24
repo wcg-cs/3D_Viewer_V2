@@ -5,10 +5,12 @@ from PyQt5.uic import loadUi
 from PyQt5.QtWidgets import *
 
 from PyQt5 import QtCore, QtGui, QtWidgets
+from PyQt5.QtCore import QObject, pyqtSignal,QSize, Qt
 
 from DicomVis_ok import DicomVis
 
 class Visual_Wndow(QMainWindow):
+    goBackSignal_info = pyqtSignal()
     def __init__(self):
         super(Visual_Wndow, self).__init__()
         # 加载UI文件
@@ -16,7 +18,12 @@ class Visual_Wndow(QMainWindow):
         # 设置主窗口的布局为垂直布局
         self.centralwidget.setLayout(QVBoxLayout())
 
-
+        # 设置进度条全亮
+        self.progress_1.setChecked(True)
+        self.progress_2.setChecked(True)
+        self.progress_3.setChecked(True)
+        self.progress_4.setChecked(True)
+        self.progress_5.setChecked(True)
 
         self.dicomVisWidget = DicomVis()
         self.horizontalLayout.insertWidget(1, self.dicomVisWidget,6)
@@ -30,8 +37,9 @@ class Visual_Wndow(QMainWindow):
         self.DicomDir.clicked.connect(self.on_AddDicomBtn_clicked)
         self.niiFile.clicked.connect(self.on_AddNiiBtn_clicked)
         self.selectNii.clicked.connect(self.on_Add2DNIIBtn_clicked)
-       # load_Nii_from_path
-
+       
+        self.back.clicked.connect(self.goBackToPatientInfo)
+    # load_Nii_from_path
     def on_AddDicomBtn_clicked(self):
         dicompath = QtWidgets.QFileDialog.getExistingDirectory(None, "选取文件夹", "")
 
@@ -40,6 +48,16 @@ class Visual_Wndow(QMainWindow):
             return
         self.dicomVisWidget.load_dicom_from_path(dicompath)
 
+    # 界面二来的执行流
+    def load_nii_from_widget_2(self, image_path):
+        segdialog = QtWidgets.QFileDialog()
+        segdialog.setFileMode(QtWidgets.QFileDialog.ExistingFile)
+        segdialog.setAcceptMode(QtWidgets.QFileDialog.AcceptOpen)
+        # if image_path == "":
+        #     print("\n取消选择")
+        #     return
+        self.dicomVisWidget.load_Nii_from_path(image_path)
+    
     def on_Add2DNIIBtn_clicked(self):
         segdialog = QtWidgets.QFileDialog()
         segdialog.setFileMode(QtWidgets.QFileDialog.ExistingFile)
@@ -52,6 +70,14 @@ class Visual_Wndow(QMainWindow):
 
         self.dicomVisWidget.load_Nii_from_path(file)
 
+    # 界面二来的执行流（label）
+    def load_label_from_widget_2(self, label_path):
+        segdialog = QtWidgets.QFileDialog()
+        segdialog.setFileMode(QtWidgets.QFileDialog.ExistingFile)
+        segdialog.setAcceptMode(QtWidgets.QFileDialog.AcceptOpen)
+        self.dicomVisWidget.GetImageDataFromPath(label_path)
+
+
     def on_AddNiiBtn_clicked(self):
         segdialog = QtWidgets.QFileDialog()
         segdialog.setFileMode(QtWidgets.QFileDialog.ExistingFile)
@@ -63,14 +89,21 @@ class Visual_Wndow(QMainWindow):
             return
 
         self.dicomVisWidget.GetImageDataFromPath(file)
+
     def setWidgetsSizePolicy(self):
         for widget in self.findChildren(QWidget):
             widget.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+            
     def close(self):
         self.dicomVisWidget.close()
 
     def closeEvent(self, event):
         self.close()
+
+    # 当用户点击back时发出信号
+    def goBackToPatientInfo(self):
+        self.goBackSignal_info.emit()
+
 # if __name__ == "__main__":
 #     app = QApplication(sys.argv)
 #     mainWindow = Visual_Wndow()

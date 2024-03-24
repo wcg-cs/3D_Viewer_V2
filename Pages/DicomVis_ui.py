@@ -161,6 +161,9 @@ class Ui_Form(object):
         self.VolumeWidget.setMinimumSize(QtCore.QSize(350, 350))  # 或其他适当的值
 
 
+        
+
+
         self.retranslateUi(Form)
         QtCore.QMetaObject.connectSlotsByName(Form)
 

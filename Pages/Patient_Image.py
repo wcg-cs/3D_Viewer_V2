@@ -7,7 +7,10 @@ import sys
 from PyQt5.QtCore import QObject, pyqtSignal,QSize, Qt
 
 class Patient_Image(QMainWindow):
-    goBackSignal = pyqtSignal()
+    goBackSignal = pyqtSignal()#返回界面一的信号
+    navigateSignal_visual = pyqtSignal() #跳转至界面三的信号
+    file_label_path_signal = pyqtSignal(str) #传label文件名到main
+    file_image_path_signal = pyqtSignal(str) #传image文件名到main
     def __init__(self, patient_name):
         super().__init__()
 
@@ -19,6 +22,9 @@ class Patient_Image(QMainWindow):
 
         # 为 ListWidget_1 添加信号和槽连接
         self.listWidget_1.itemClicked.connect(self.on_listWidget_1_itemClicked)
+
+        # 为listwidget_2添加信号和槽链接
+        self.listWidget_2.itemClicked.connect(self.on_listWidget_2_itemClicked)
 
         # 为 model_select_1 到 model_select_4 添加信号和槽连接
         self.model_select_1.toggled.connect(self.on_model_select_toggled)
@@ -32,7 +38,13 @@ class Patient_Image(QMainWindow):
         # 加载病人文件夹内容到 listWidget_1 中
         self.loadPatientFiles(patient_name)
 
-        self.back.clicked.connect(self.goBackToPatientManage)        
+        self.loadPatientLabels(patient_name)
+
+        #为back按钮添加点击事件
+        self.back.clicked.connect(self.goBackToPatientManage)      
+
+        # 为visual添加带点击事件连接
+        self.visualize.clicked.connect(self.navigateTovisual_result)  
 
 
      # 加载病人文件夹内容到 listWidget_1 中
@@ -50,22 +62,64 @@ class Patient_Image(QMainWindow):
 
             # 将文件和子文件夹名称添加到 listWidget_1 中
             for item in files_and_folders:
-                self.listWidget_1.addItem(item)
+                file_path = os.path.join(patient_folder_path, item)
+                if os.path.isfile(file_path) and \
+                    (item.endswith('.nii.gz') or item.endswith('.dcm')) and \
+                    'label' not in item.lower():
+                        self.listWidget_1.addItem(item)
 
+    #listwidget_2显示label文件夹 
+    def loadPatientLabels(self, patient_name):
+            # 获取病人文件夹路径
+        patient_folder_path = os.path.join('patients', patient_name)
+
+        # 清空列表视图中的内容
+        self.listWidget_2.clear()
+
+        # 检查文件夹是否存在
+        if os.path.exists(patient_folder_path) and os.path.isdir(patient_folder_path):
+            # 获取label子文件夹的路径
+            label_folder_path = os.path.join(patient_folder_path, 'label')
+
+            # 检查label子文件夹是否存在
+            if os.path.exists(label_folder_path) and os.path.isdir(label_folder_path):
+                # 获取label子文件夹中的所有文件名
+                label_files = os.listdir(label_folder_path)
+
+                # 将文件名添加到列表视图中
+                for file_name in label_files:
+                    item = QListWidgetItem(file_name)
+                    self.listWidget_2.addItem(item)
+
+    # 当 ListWidget_1 中的某一行被选中时，progress_2 被选中
     def on_listWidget_1_itemClicked(self, item):
-        # 当 ListWidget_1 中的某一行被选中时，progress_2 被选中
         self.progress_2.setChecked(True)
+        # 获取选中行的文件名
+        selected_file_name = item.text()
+        # 发射自定义信号，发送选中行的文件名
+        self.file_image_path_signal.emit(selected_file_name)
 
+    # 当 ListWidget_2 中的某一行被选中时，progress_2 被选中
+    def on_listWidget_2_itemClicked(self, item):
+        self.progress_2.setChecked(True)
+         # 获取选中行的文件名
+        selected_file_name = item.text()
+        # 发射自定义信号，发送选中行的文件名
+        self.file_label_path_signal.emit(selected_file_name)
+
+    # 当 model_select_1 到 model_select_4 中的某个被选中时，progress_3 被选中
     def on_model_select_toggled(self):
-        # 当 model_select_1 到 model_select_4 中的某个被选中时，progress_3 被选中
+        
         if self.model_select_1.isChecked() or self.model_select_2.isChecked() or \
            self.model_select_3.isChecked() or self.model_select_4.isChecked():
             self.progress_3.setChecked(True)
-    
+
+    # 当 split 按钮被点击时，progress_4 被选中
     def on_split_clicked(self):
-        # 当 split 按钮被点击时，progress_4 被选中
+        
         self.progress_4.setChecked(True)
 
+    # 当用户点击返回按钮时发出信号
     def goBackToPatientManage(self):
         # self.progress_1.setChecked(False)
         self.progress_2.setChecked(False)
@@ -76,8 +130,13 @@ class Patient_Image(QMainWindow):
         self.model_select_2.setChecked(False)
         self.model_select_3.setChecked(False)
         self.model_select_4.setChecked(False)
-        # 当用户点击返回按钮时发出信号
+        
         self.goBackSignal.emit()
+
+    # 当用户点击visualize时发出信号（跳转至页面三）
+    def navigateTovisual_result(self):
+        self.navigateSignal_visual.emit()
+
 # if __name__ == "__main__":
 #     app = QApplication(sys.argv)
 #     window = Patient_Image()
