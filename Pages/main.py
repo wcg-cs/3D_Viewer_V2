@@ -47,6 +47,9 @@ class MainApplication:
                 self.patient_info_page.goBackSignal.connect(self.goBackToPatientManage)
                 # 链接界面二的信号到页面跳转的槽函数
                 self.patient_info_page.navigateSignal_visual.connect(self.navigateTovisual_result)
+                # 链接界面二的刷新函数
+                self.patient_info_page.flash_image.connect(self.flash_image)
+                self.patient_info_page.flash_label.connect(self.flash_label)
                 # 链接界面二传过来的image文件名的槽函数
                 self.patient_info_page.file_image_path_signal.connect(self.calculate_image_path)
                 # 链接界面二传过来的label文件名的槽函数
@@ -56,7 +59,7 @@ class MainApplication:
                 # 如果界面二已经被实例化，则直接加载病人文件
                 self.patient_info_page.loadPatientFiles(patient_name)
                 self.patient_info_page.show()
-            print("label_file:",file_label_path)
+            # print("label_file:",file_label_path)
 
             # 隐藏界面一
             self.patient_manage_page.hide()
@@ -65,6 +68,7 @@ class MainApplication:
     def goBackToPatientManage(self):
         # 隐藏界面二
         self.patient_info_page.hide()
+        self.patient_info_page = None
         # 显示界面一
         self.patient_manage_page.show()
         global file_image_path
@@ -78,8 +82,8 @@ class MainApplication:
         self.visual_result_page.show()
         global file_image_path
         global file_label_path
-        file_image_path = os.path.dirname(file_image_path)
-        file_label_path = os.path.dirname(file_label_path)
+        # file_image_path = os.path.dirname(file_image_path)
+        # file_label_path = os.path.dirname(file_label_path)
         # print(file_image_path)
         self.visual_result_page.load_nii_from_widget_2(file_image_path)
         self.visual_result_page.load_label_from_widget_2(file_label_path)
@@ -92,7 +96,7 @@ class MainApplication:
         # 获取当前选中行的病人姓名
         # current_row = self.patient_manage_page.tableWidget.currentRow()
         patient_name_item = self.patient_manage_page.tableWidget.item(current_row, 0)
-        print(patient_name_item.text(), current_row)
+        # print(patient_name_item.text(), current_row)
         if patient_name_item is not None:
             patient_name = patient_name_item.text()
             # print(patient_name+'\n')
@@ -114,7 +118,9 @@ class MainApplication:
         # file_label_path = os.path.join(file_label_path, file_name)
         file_image_path = file_image_path.replace('\\', '/')
         # file_label_path = file_label_path.replace('\\', '/')
-        print("file_path:", file_image_path)
+        print("file_path_image:", file_image_path)
+        # print("file_path_label:", file_label_path)
+
 
     # 计算路径
     def calculate_label_path(self, file_name):
@@ -124,7 +130,21 @@ class MainApplication:
         # file_label_path = os.path.join(file_label_path, file_name)
         file_label_path = file_label_path.replace('\\', '/')
         # file_label_path = file_label_path.replace('\\', '/')
-        print("file_path:", file_label_path)
+        print("file_label_path:", file_label_path)
+
+    # 刷新路径
+    def flash_image(self):
+        global file_image_path
+
+        file_image_path = "D:/graduate_design/3D_Viewer_V2/patients"
+        file_image_path = os.path.join(file_image_path, self.patient_manage_page.tableWidget.item(current_row, 0).text())
+
+    # 刷新路径
+    def flash_label(self):
+        global file_label_path
+
+        file_label_path = "D:/graduate_design/3D_Viewer_V2/patients"
+        file_label_path = os.path.join(file_label_path, self.patient_manage_page.tableWidget.item(current_row, 0).text(),"label")
     
 if __name__ == "__main__":
     current_row = -1

@@ -11,6 +11,8 @@ class Patient_Image(QMainWindow):
     navigateSignal_visual = pyqtSignal() #跳转至界面三的信号
     file_label_path_signal = pyqtSignal(str) #传label文件名到main
     file_image_path_signal = pyqtSignal(str) #传image文件名到main
+    flash_image = pyqtSignal()#刷新路径
+    flash_label = pyqtSignal()#刷新路径
     def __init__(self, patient_name):
         super().__init__()
 
@@ -51,7 +53,7 @@ class Patient_Image(QMainWindow):
     def loadPatientFiles(self, patient_name):
         # 获取病人文件夹路径
         patient_folder_path = os.path.join('patients', patient_name)
-
+        # print("list——1：",patient_folder_path)
         # 检查文件夹是否存在
         if os.path.exists(patient_folder_path) and os.path.isdir(patient_folder_path):
             # 清空 listWidget_1 中的内容
@@ -72,14 +74,15 @@ class Patient_Image(QMainWindow):
     def loadPatientLabels(self, patient_name):
             # 获取病人文件夹路径
         patient_folder_path = os.path.join('patients', patient_name)
-
-        # 清空列表视图中的内容
-        self.listWidget_2.clear()
+        # print(" patient_folder_path    ",patient_folder_path)
 
         # 检查文件夹是否存在
         if os.path.exists(patient_folder_path) and os.path.isdir(patient_folder_path):
+            # 清空列表视图中的内容
+            self.listWidget_2.clear()
             # 获取label子文件夹的路径
             label_folder_path = os.path.join(patient_folder_path, 'label')
+            print(" label_folder_path    ",label_folder_path)
 
             # 检查label子文件夹是否存在
             if os.path.exists(label_folder_path) and os.path.isdir(label_folder_path):
@@ -88,12 +91,14 @@ class Patient_Image(QMainWindow):
 
                 # 将文件名添加到列表视图中
                 for file_name in label_files:
-                    item = QListWidgetItem(file_name)
-                    self.listWidget_2.addItem(item)
+                    # item = QListWidgetItem(file_name)
+                    self.listWidget_2.addItem(file_name)
+        self.listWidget_2.update()
 
     # 当 ListWidget_1 中的某一行被选中时，progress_2 被选中
     def on_listWidget_1_itemClicked(self, item):
         self.progress_2.setChecked(True)
+        self.flash_image.emit()
         # 获取选中行的文件名
         selected_file_name = item.text()
         # 发射自定义信号，发送选中行的文件名
@@ -102,6 +107,7 @@ class Patient_Image(QMainWindow):
     # 当 ListWidget_2 中的某一行被选中时，progress_2 被选中
     def on_listWidget_2_itemClicked(self, item):
         self.progress_2.setChecked(True)
+        self.flash_label.emit()
          # 获取选中行的文件名
         selected_file_name = item.text()
         # 发射自定义信号，发送选中行的文件名

@@ -367,6 +367,7 @@ class DicomVis(VisuAnalysisWidget):
         self.show_Data()
     # 从文件路径加载NII数据
     def load_Nii_from_path(self, studyPath):
+        print("PATH:",studyPath)
         reader = vtk.vtkNIFTIImageReader()
         reader.SetFileName(studyPath)
         reader.Update()
